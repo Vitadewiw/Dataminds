@@ -74,7 +74,45 @@ if menu == "Home":
             st.error(f"Gagal memuat feature importance: {e}")
     else:
         st.warning("Model belum dimuat atau tidak memiliki atribut feature_importances_.")
+    # ================== Tambahan dashboard ==================
+    st.markdown("## 📊 Analisis Visual")
 
+    # 1. OverTime vs Attrition
+    if "OverTime" in df.columns:
+        st.write("### 1. OverTime vs Attrition")
+        overtime_attrition = df.groupby("OverTime")["Attrition"].value_counts(normalize=True).unstack().fillna(0)
+        overtime_attrition.plot(kind='bar', stacked=True, figsize=(8,5), colormap='Set2')
+        plt.title("OverTime vs Attrition")
+        plt.ylabel("Proportion")
+        plt.xticks(rotation=0)
+        st.pyplot(plt)
+    else:
+        st.warning("Kolom 'OverTime' tidak ditemukan di dataset.")
+
+
+    # 2. Attrition by Marital Status
+    if "MaritalStatus_Single" in df.columns and "MaritalStatus_Married" in df.columns:
+        st.write("### 2. Attrition by Marital Status (Single vs Married)")
+        df_marital = df[["Attrition", "MaritalStatus_Single", "MaritalStatus_Married"]].copy()
+        df_marital = df_marital.melt(id_vars="Attrition", 
+                                      value_vars=["MaritalStatus_Single", "MaritalStatus_Married"],
+                                      var_name="Status", value_name="Value")
+        df_marital = df_marital[df_marital["Value"] == 1]
+        marital_summary = df_marital.groupby("Status")["Attrition"].value_counts(normalize=True).unstack().fillna(0)
+        marital_summary.plot(kind='bar', stacked=True, figsize=(8,5), colormap='Pastel1')
+        plt.title("Attrition by Marital Status (Single vs Married)")
+        plt.ylabel("Proportion")
+        plt.xticks(rotation=0)
+        st.pyplot(plt)
+    elif "MaritalStatus" in df.columns:
+        st.write("### 2. Attrition by Marital Status")
+        marital_attrition = df.groupby("MaritalStatus")["Attrition"].value_counts(normalize=True).unstack().fillna(0)
+        marital_attrition.plot(kind='bar', stacked=True, figsize=(8,5), colormap='Pastel1')
+        plt.title("Attrition by Marital Status")
+        plt.xticks(rotation=0)
+        st.pyplot(plt)
+    else:
+        st.warning("Kolom 'MaritalStatus' tidak ditemukan di dataset.")
 
 # ============================ PREDICTION ============================
 elif menu == "Prediction":
